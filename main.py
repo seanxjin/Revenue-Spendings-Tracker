@@ -48,8 +48,20 @@ def storePass():
     """)
     PASSWORD = input("> ")
     return PASSWORD
+def setNewPassword(ASK, PASSWORD):
+    """
+    Set new password
+    :param ASK: str
+    :return: str
+    """
+    if ASK == PASSWORD:
+        NEWPASSWORD = input("New password: ")
+        PASSWORD = NEWPASSWORD
+        return PASSWORD
+    else:
+        print("Password is incorrect")
 ### PROCESSING
-def getRevenue(FILENAME):
+def getValues(FILENAME):
     """
     Extracts contents of file and put it into 2d array
     :param FILENAME: str
@@ -62,7 +74,6 @@ def getRevenue(FILENAME):
         if TEXT_LIST[i][-1] == "\n":
             TEXT_LIST[i] = TEXT_LIST[i][:-1]
         TEXT_LIST[i] = TEXT_LIST[i].split(',')
-
         for j in range(len(TEXT_LIST[i])):
             try:
                 TEXT_LIST[i][j] = float(TEXT_LIST[i][j])
@@ -80,48 +91,90 @@ def setupRevenue(REVENUE):
         CREATE TABLE
             revenue (
                 id INTEGER PRIMARY KEY,
-                entry TEXT,
-                category TEXT,
-                trans_action TEXT NOT NULL,
-                amount REAL NOT NULL
+                Entry TEXT,
+                Year INTEGER NOT NULL,
+                Category TEXT,
+                Trans_action TEXT NOT NULL,
+                Amount REAL NOT NULL
             )
     ;""")
     for i in range(1, len(REVENUE)):
         CURSOR.execute("""
             INSERT INTO
                 revenue (
-                    entry,
-                    category,
-                    trans_action,
-                    amount
+                    Entry,
+                    Year,
+                    Category,
+                    Trans_action,
+                    Amount
                 )
             VALUES (
-                ?, ?, ?, ?
+                ?, ?, ?, ?, ?
             )
         ;""", REVENUE[i])
     CONNECTION.commit()
-def comfirmPassword(ASK, PASSWORD):
+def setupSpendings(SPENDINGS):
     """
-    Comfirms the password the user has imported
+    Sets up the tables of spendings
+    :param SPENDINGS: 2d array
+    :return: none
+    """
+    global CURSOR, CONNECTION
+    CURSOR.execute("""
+        CREATE TABLE
+            spendings (
+                id INTEGER PRIMARY KEY,
+                Entry TEXT,
+                Year INTEGER NOT NULL,
+                Trans_action TEXT NOT NULL,
+                Category TEXT,
+                Amount REAL NOT NULL,
+                GST REAL NOT NULL
+            )
+    ;""")
+    for i in range(1, len(SPENDINGS)):
+        CURSOR.execute("""
+            INSERT INTO
+                spendings (
+                    Entry,
+                    Year,
+                    Trans_action,
+                    Category,
+                    Amount,
+                    GST
+                )
+            VALUES (
+                ?, ?, ?, ?, ?, ?
+            )
+        ;""", SPENDINGS[i])
+    CONNECTION.commit()
+def confirmPassword(ASK, PASSWORD):
+    """
+    Confirms the password the user has imported
     :param ASK: str
     :return: none
     """
     if ASK == PASSWORD:
         return 1
     else:
-        pass
-def setNewPassword(ASK, PASSWORD):
-    """
-    Set new password
-    :param ASK: str
-    :return: str
-    """
-    if ASK == PASSWORD:
-        NEWPASSWORD = input("New password: ")
-        PASSWORD = NEWPASSWORD
-        return PASSWORD
-    else:
         print("Password is incorrect")
+def setupRevAndSpend(INFO):
+    """
+    Sets up the table of revenue vs spendings
+    :param INFO: 2d array
+    :return: none
+    """
+    global CURSOR, CONNECTION
+    CURSOR.execute("""
+        CREATE TABLE
+            profit (
+                id INTEGER PRIMARY KEY,
+                Year INTEGER NOT NULL,
+                Tot_Spend REAL NOT NULL,
+                Tot_Revenue REAL NOT NULL,
+                Tot_Profit REAL NOT NULL,
+                Amount_Left 
+    ;""")
 ### OUTPUTS
 
 # --- VARIABLES --- #
@@ -136,16 +189,21 @@ CURSOR = CONNECTION.cursor()
 
 
 if __name__ == "__main__":
-    if FIRST_RUN:
-        REVENUE = getRevenue("Revenue - Sheet1.csv")
-        print(REVENUE)
-        setupRevenue(REVENUE)
-        PASSWORD = storePass()
+    REVENUE = getValues("Revenue - Sheet1.csv")
+    print(REVENUE)
+    setupRevenue(REVENUE)
+    SPENDINGS = getValues("Spendings - Sheet1.csv")
+    setupSpendings(SPENDINGS)
+    print(SPENDINGS)
+    REVENUEVSSPENDINGS = getValues("Revenue vs Spendings - Sheet1.csv")
+    setupRevAndSpend(REVENUEVSSPENDINGS)
+    print(REVENUEVSSPENDINGS)
+    PASSWORD = storePass()
     while START == 0:
         CHOICE = choiceLoginOrUpdate()
         if CHOICE == 1:
             ASK = askPassword()
-            START = comfirmPassword(ASK, PASSWORD)
+            START = confirmPassword(ASK, PASSWORD)
         if CHOICE == 2:
             ASK = askPassword()
             PASSWORD = setNewPassword(ASK, PASSWORD)
