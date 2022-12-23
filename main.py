@@ -43,11 +43,25 @@ def storePass():
     Asks the User for the password initially
     :return: str
     """
+    global CURSOR, CONNECTION
     print("""
     Set Password: 
     """)
     PASSWORD = input("> ")
-    return PASSWORD
+    CURSOR.execute("""
+        CREATE TABLE
+            password (
+                password TEXT PRIMARY KEY
+            )
+    ;""")
+    CURSOR.execute("""
+        INSERT INTO
+            password
+        VALUES (
+            ?
+        )
+    ;""", [PASSWORD])
+    CONNECTION.commit()
 def setNewPassword(ASK, PASSWORD):
     """
     Set new password
@@ -60,6 +74,30 @@ def setNewPassword(ASK, PASSWORD):
         return PASSWORD
     else:
         print("Password is incorrect")
+        return PASSWORD
+def askCalculation():
+    """
+    Asks which calculation to do. Revenue, Spendings, or Revenue vs Spendings.
+    :return: int
+    """
+    print("""
+    Please Select an Calculation. Input an Integer
+    
+    1. Revenue 
+    2. Spendings
+    3. Revenue vs Spendings
+    """)
+    CHOICE = input("> ")
+    try:
+        CHOICE = int(CHOICE)
+    except ValueError:
+        print("Please input possible integer")
+        return askCalculation()
+    if CHOICE == 1 or CHOICE == 2 or CHOICE == 3:
+        return CHOICE
+    else:
+        print("Please input possible integer")
+        return askCalculation()
 ### PROCESSING
 def getValues(FILENAME):
     """
@@ -148,16 +186,24 @@ def setupSpendings(SPENDINGS):
             )
         ;""", SPENDINGS[i])
     CONNECTION.commit()
-def confirmPassword(ASK, PASSWORD):
+def confirmPassword(ASK):
     """
     Confirms the password the user has imported
     :param ASK: str
     :return: none
     """
+    PASSWORD = CURSOR.execute("""
+        SELECT
+            password
+        FROM 
+            password
+    ;""").fetchone()
+    PASSWORD = PASSWORD[0]
     if ASK == PASSWORD:
         return 1
     else:
         print("Password is incorrect")
+        return 0
 def setupRevAndSpend(INFO):
     """
     Sets up the table of revenue vs spendings
@@ -173,8 +219,25 @@ def setupRevAndSpend(INFO):
                 Tot_Spend REAL NOT NULL,
                 Tot_Revenue REAL NOT NULL,
                 Tot_Profit REAL NOT NULL,
-                Amount_Left 
+                Amount_Left REAL NOT NULL
+                )
     ;""")
+
+    for i in range(1, len(INFO)):
+        CURSOR.execute("""
+            INSERT INTO
+                profit (
+                    Year,
+                    Tot_Spend,
+                    Tot_Revenue,
+                    Tot_Profit,
+                    Amount_Left
+                )
+            VALUES (
+                ?, ?, ?, ?, ?
+                )
+        ;""", INFO[i])
+    CONNECTION.commit()
 ### OUTPUTS
 
 # --- VARIABLES --- #
@@ -189,22 +252,23 @@ CURSOR = CONNECTION.cursor()
 
 
 if __name__ == "__main__":
-    REVENUE = getValues("Revenue - Sheet1.csv")
-    print(REVENUE)
-    setupRevenue(REVENUE)
-    SPENDINGS = getValues("Spendings - Sheet1.csv")
-    setupSpendings(SPENDINGS)
-    print(SPENDINGS)
-    REVENUEVSSPENDINGS = getValues("Revenue vs Spendings - Sheet1.csv")
-    setupRevAndSpend(REVENUEVSSPENDINGS)
-    print(REVENUEVSSPENDINGS)
-    PASSWORD = storePass()
+    if FIRST_RUN:
+        REVENUE = getValues("Revenue - Sheet1.csv")
+        print(REVENUE)
+        setupRevenue(REVENUE)
+        SPENDINGS = getValues("Spendings - Sheet1.csv")
+        setupSpendings(SPENDINGS)
+        print(SPENDINGS)
+        REVENUEVSSPENDINGS = getValues("Revenue vs Spendings - Sheet1.csv")
+        setupRevAndSpend(REVENUEVSSPENDINGS)
+        print(REVENUEVSSPENDINGS)
+        storePass()
     while START == 0:
         CHOICE = choiceLoginOrUpdate()
         if CHOICE == 1:
             ASK = askPassword()
-            START = confirmPassword(ASK, PASSWORD)
+            START = confirmPassword(ASK)
         if CHOICE == 2:
             ASK = askPassword()
             PASSWORD = setNewPassword(ASK, PASSWORD)
-
+    CALCULATE = askCalculation()
