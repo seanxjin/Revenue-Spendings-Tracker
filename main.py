@@ -6,9 +6,8 @@ date-created: 2022-12-14
 
 import sqlite3
 import pathlib
-import flask
-
-
+import matplotlib
+from revenue import *
 
 ### INPUTS
 def choiceLoginOrUpdate():
@@ -62,19 +61,31 @@ def storePass():
         )
     ;""", [PASSWORD])
     CONNECTION.commit()
-def setNewPassword(ASK, PASSWORD):
+def setNewPassword(ASK):
     """
     Set new password
     :param ASK: str
     :return: str
     """
+    global CURSOR, CONNECTION
+    PASSWORD = CURSOR.execute("""
+        SELECT 
+            password
+        FROM 
+            password
+    ;""").fetchone()
+    PASSWORD = PASSWORD[0]
     if ASK == PASSWORD:
         NEWPASSWORD = input("New password: ")
-        PASSWORD = NEWPASSWORD
-        return PASSWORD
+        CURSOR.execute("""
+            UPDATE
+                password
+            SET
+                password = ?
+        ;""", [NEWPASSWORD])
+        CONNECTION.commit()
     else:
         print("Password is incorrect")
-        return PASSWORD
 def askCalculation():
     """
     Asks which calculation to do. Revenue, Spendings, or Revenue vs Spendings.
@@ -192,6 +203,7 @@ def confirmPassword(ASK):
     :param ASK: str
     :return: none
     """
+    global CURSOR
     PASSWORD = CURSOR.execute("""
         SELECT
             password
@@ -270,5 +282,11 @@ if __name__ == "__main__":
             START = confirmPassword(ASK)
         if CHOICE == 2:
             ASK = askPassword()
-            PASSWORD = setNewPassword(ASK, PASSWORD)
+            PASSWORD = setNewPassword(ASK)
     CALCULATE = askCalculation()
+    if CALCULATE == 1:
+        displayrevenue()
+    if CALCULATE == 2:
+        pass
+    if CALCULATE == 3:
+        pass
