@@ -254,6 +254,7 @@ def setupRevAndSpend(INFO):
 
 # --- VARIABLES --- #
 START = 0
+RUN = True
 DATABASE_FILE = "Finance.db"
 FIRST_RUN = True
 if (pathlib.Path.cwd() / DATABASE_FILE).exists():
@@ -283,10 +284,18 @@ if __name__ == "__main__":
         if CHOICE == 2:
             ASK = askPassword()
             PASSWORD = setNewPassword(ASK)
-    CALCULATE = askCalculation()
-    if CALCULATE == 1:
-        displayrevenue()
-    if CALCULATE == 2:
-        pass
-    if CALCULATE == 3:
-        pass
+    while RUN:
+        CALCULATE = askCalculation()
+        if CALCULATE == 1:
+            displayrevenue()
+            OPTION = askOption()
+            if OPTION == 1:
+                REVINFO = askRevData()
+                addRevData(REVINFO)
+            if OPTION == 2:
+                ID = askRevId()
+                updateRev(ID)
+        if CALCULATE == 2:
+            pass
+        if CALCULATE == 3:
+            pass
