@@ -239,12 +239,33 @@ def graphRev(CHOICE):
         ;""").fetchall()
         print(INFO)
         NEWINFO = []
-        for k in range(len(INFO)-1,-1,-1):
-            for j in range(len(INFO)-1,-1,-1):
+        for k in range(len(INFO)):
+            for j in range(len(INFO)):
                 if INFO[k][0] == INFO[j][0]:
-                    k = k - 1
-                    NEWINFO.append(INFO.pop(j))
+                    if INFO[j][0] in NEWINFO:
+                        pass
+                    else:
+                        NEWINFO.append(INFO[j][0])
         print(NEWINFO)
+        for i in range(len(NEWINFO)):
+            TOTAL = CURSOR.execute("""
+                SELECT
+                    Amount
+                FROM 
+                    revenue
+                WHERE
+                    Year = ?
+                ;""",[NEWINFO[i]]).fetchall()
+            NEWTOTAL = []
+            for l in range((len(TOTAL))):
+                NEWTOTAL.append(TOTAL[l][0])
+            NEWTOTAL = sum(NEWTOTAL)
+            CURSOR.execute("""
+                INSERT INTO
+            
+            
+            """)
+
 
 
 

@@ -8,7 +8,20 @@ import sqlite3
 import pathlib
 import matplotlib.pyplot as plt
 from revenue import *
-
+# --- VARIABLES --- #
+START = 0
+RUN = True
+DATABASE_FILE = "Finance.db"
+FIRST_RUN = True
+if (pathlib.Path.cwd() / DATABASE_FILE).exists():
+    FIRST_RUN = False
+    CONNECTION = sqlite3.connect(DATABASE_FILE)
+    CURSOR = CONNECTION.cursor()
+else:
+    CONNECTION = sqlite3.connect(DATABASE_FILE)
+    CURSOR = CONNECTION.cursor()
+START = 0
+RUN = True
 ### INPUTS
 def choiceLoginOrUpdate():
     """
@@ -110,6 +123,28 @@ def askCalculation():
         print("Please input possible integer")
         return askCalculation()
 ### PROCESSING
+def createGraphs():
+    """
+    Creates databases for the graphing part of the functions
+    :return: none
+    """
+    global CURSOR, CONNECTION
+    CURSOR.execute("""
+        CREATE TABLE
+            revenuegraph (
+                Year,
+                Amount
+            )
+    ;""")
+    CONNECTION.commit()
+    CURSOR.execute("""
+        CREATE TABLE 
+            spendingsgraph (
+                Year,
+                Amount
+            )
+        ;""")
+    CONNECTION.commit()
 def getValues(FILENAME):
     """
     Extracts contents of file and put it into 2d array
@@ -252,15 +287,7 @@ def setupRevAndSpend(INFO):
     CONNECTION.commit()
 ### OUTPUTS
 
-# --- VARIABLES --- #
-START = 0
-RUN = True
-DATABASE_FILE = "Finance.db"
-FIRST_RUN = True
-if (pathlib.Path.cwd() / DATABASE_FILE).exists():
-    FIRST_RUN = False
-CONNECTION = sqlite3.connect(DATABASE_FILE)
-CURSOR = CONNECTION.cursor()
+
 
 
 
@@ -275,6 +302,7 @@ if __name__ == "__main__":
         REVENUEVSSPENDINGS = getValues("Revenue vs Spendings - Sheet1.csv")
         setupRevAndSpend(REVENUEVSSPENDINGS)
         print(REVENUEVSSPENDINGS)
+        createGraphs()
         storePass()
     while START == 0:
         CHOICE = choiceLoginOrUpdate()
