@@ -6,7 +6,7 @@ date-created: 2022-12-14
 
 import sqlite3
 import pathlib
-import matplotlib
+import matplotlib.pyplot as plt
 from revenue import *
 
 ### INPUTS
@@ -295,6 +295,16 @@ if __name__ == "__main__":
             if OPTION == 2:
                 ID = askRevId()
                 updateRev(ID)
+            if OPTION == 3:
+                ID = askRevId()
+                deleteRev(ID)
+            if OPTION == 4:
+                YR = askRevYr()
+                QUERYINFO = queryRev(YR)
+                displayquery(QUERYINFO)
+            if OPTION == 5:
+                CHOICEGRAPH = askTypeGraph()
+                graphRev(CHOICEGRAPH)
         if CALCULATE == 2:
             pass
         if CALCULATE == 3:

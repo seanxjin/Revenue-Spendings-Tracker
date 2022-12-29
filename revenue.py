@@ -4,7 +4,7 @@ author: Sean Jin
 date-created: 2022-12-26
 '''
 import sqlite3
-import matplotlib
+import matplotlib.pyplot as plt
 from tabulate import tabulate
 
 # --- VARIABLES --- #
@@ -12,6 +12,23 @@ DATABASE_FILE = "Finance.db"
 CONNECTION = sqlite3.connect(DATABASE_FILE)
 CURSOR = CONNECTION.cursor()
 ### INPUTS
+def askTypeGraph():
+    """
+    Asks the user the type of graph they want to see
+    :return: int
+    """
+    print("1 for bar graph, 2 for line graph, and 3 for scatter plot")
+    CHOICE = input("> ")
+    try:
+        CHOICE = int(CHOICE)
+    except ValueError:
+        print("Please enter a valid value")
+        return graphRev()
+    if CHOICE > 0  and CHOICE < 4:
+        return CHOICE
+    else:
+        print("Please enter a valid value")
+        return graphRev()
 def askOption():
     """
     Asks the user which of the following calculations they want to do for revenue
@@ -85,7 +102,36 @@ def askRevId():
         return askRevId()
     else:
         return CHOICE
+def askRevYr():
+    """
+    Asks the year from the user, and uses that info to query the database
+    :return: int
+    """
+    print("Input Year:")
+    YR = input("> ")
+    try:
+        YR = int(YR)
+    except ValueError:
+        print("Please input a valid number")
+        return askRevYr()
+    return YR
 ### PROCESSING
+def queryRev(YR):
+    """
+    Searches for the info in the database that contains that year
+    :param YR: int
+    :return: 2d array
+    """
+    global CURSOR, CONNECTION
+    QUERY = CURSOR.execute("""
+        SELECT
+            *
+        FROM 
+            revenue
+        WHERE
+            Year = ?
+    ;""",[YR]).fetchall()
+    return QUERY
 def updateRev(ID):
     """
     Updates the info on the revenue
@@ -110,7 +156,7 @@ def updateRev(ID):
     ENTRY = input(f"Entry: ({INFO[0]}) ")
     YEAR = input(f"Year: ({INFO[1]}) ")
     CATEGORY = input(f"Category: ({INFO[2]}) ")
-    TRANSACTION = input(f"Transaction: ({INFO[3]}) ")
+    TRANSACTION = input(f"Transaction: ({INFO[3]}) (1 for Debit, 2 for Credit) ")
     AMOUNT = input(f"Amount: ({INFO[4]}) ")
     NEW = [ENTRY, YEAR, CATEGORY, TRANSACTION, AMOUNT]
     for i in range(len(NEW)):
@@ -139,6 +185,21 @@ def updateRev(ID):
     CONNECTION.commit()
     # OUTPUTS
     print(f"{NEW[5]} was successfully updated!")
+def deleteRev(ID):
+    """
+    Deletes the row of data that the user has chosen to delete
+    :param ID: int -- > primary key
+    :return: none
+    """
+    global CURSOR, CONNECTION
+    CURSOR.execute("""
+        DELETE FROM 
+            revenue
+        WHERE
+            id = ?
+    """, [ID])
+    CONNECTION.commit()
+    print(f"{ID} successfully deleted!")
 def addRevData(INFO):
     """
     Adds the revenue data into the table in sequel
@@ -161,6 +222,32 @@ def addRevData(INFO):
     ;""", INFO)
     CONNECTION.commit()
     print("Data successfully added!")
+def graphRev(CHOICE):
+    """
+    Graphs all the current information using matplotlib
+    :return: none
+    """
+    global CURSOR, CONNECTION
+    if CHOICE == 1:
+        pass
+    if CHOICE == 2:
+        INFO = CURSOR.execute("""
+            SELECT
+                Year
+            FROM
+                revenue
+        ;""").fetchall()
+        print(INFO)
+        NEWINFO = []
+        for k in range(len(INFO)-1,-1,-1):
+            for j in range(len(INFO)-1,-1,-1):
+                if INFO[k][0] == INFO[j][0]:
+                    k = k - 1
+                    NEWINFO.append(INFO.pop(j))
+        print(NEWINFO)
+
+
+
 ### OUTPUTS
 
 def displayrevenue():
@@ -183,5 +270,21 @@ def displayrevenue():
         DISPLAY.append(REVENUE[len(REVENUE) - i])
     print("Recent Transactions")
     print(tabulate(DISPLAY,HEADER, tablefmt="fancy_outline", floatfmt=".2f"))
+def displayquery(QUERYINFO):
+    """
+    Displays the info from the year the user has inputted
+    :param QUERYINFO: 2d array
+    :return: none
+    """
+    HEADER = ["id", "Entry", "Year", "Category", "Transaction", "Amount"]
+    if QUERYINFO == []:
+        print("There is no existing information in this year")
+    else:
+        print(f"""Available Info
+{tabulate(QUERYINFO,HEADER,tablefmt="fancy_outline" )}""")
+        if input("To proceed, press any button") == "r":
+            pass
+        else:
+            pass
 if __name__ == "__main__":
     displayrevenue()
