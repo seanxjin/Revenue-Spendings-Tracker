@@ -6,29 +6,9 @@ date-created: 2022-12-26
 import sqlite3
 import matplotlib.pyplot as plt
 from tabulate import tabulate
+from main import *
 
-# --- VARIABLES --- #
-DATABASE_FILE = "Finance.db"
-CONNECTION = sqlite3.connect(DATABASE_FILE)
-CURSOR = CONNECTION.cursor()
 ### INPUTS
-def askTypeGraph():
-    """
-    Asks the user the type of graph they want to see
-    :return: int
-    """
-    print("1 for bar graph, 2 for line graph, and 3 for scatter plot")
-    CHOICE = input("> ")
-    try:
-        CHOICE = int(CHOICE)
-    except ValueError:
-        print("Please enter a valid value")
-        return graphRev()
-    if CHOICE > 0  and CHOICE < 4:
-        return CHOICE
-    else:
-        print("Please enter a valid value")
-        return graphRev()
 def askOption():
     """
     Asks the user which of the following calculations they want to do for revenue
@@ -222,53 +202,57 @@ def addRevData(INFO):
     ;""", INFO)
     CONNECTION.commit()
     print("Data successfully added!")
-def graphRev(CHOICE):
+def graphRev():
     """
     Graphs all the current information using matplotlib
     :return: none
     """
     global CURSOR, CONNECTION
-    if CHOICE == 1:
-        pass
-    if CHOICE == 2:
-        INFO = CURSOR.execute("""
+    INFO = CURSOR.execute("""
+        SELECT
+            Year
+        FROM
+            revenue
+    ;""").fetchall()
+    print(INFO)
+    NEWINFO = []
+    for k in range(len(INFO)):
+        for j in range(len(INFO)):
+            if INFO[k][0] == INFO[j][0]:
+                if INFO[j][0] in NEWINFO:
+                    pass
+                else:
+                    NEWINFO.append(INFO[j][0])
+    print(NEWINFO)
+    GRAPH = []
+    for i in range(len(NEWINFO)):
+        TOTAL = CURSOR.execute("""
             SELECT
-                Year
-            FROM
+                Amount
+            FROM 
                 revenue
-        ;""").fetchall()
-        print(INFO)
-        NEWINFO = []
-        for k in range(len(INFO)):
-            for j in range(len(INFO)):
-                if INFO[k][0] == INFO[j][0]:
-                    if INFO[j][0] in NEWINFO:
-                        pass
-                    else:
-                        NEWINFO.append(INFO[j][0])
-        print(NEWINFO)
-        for i in range(len(NEWINFO)):
-            TOTAL = CURSOR.execute("""
-                SELECT
-                    Amount
-                FROM 
-                    revenue
-                WHERE
-                    Year = ?
-                ;""",[NEWINFO[i]]).fetchall()
-            NEWTOTAL = []
-            for l in range((len(TOTAL))):
-                NEWTOTAL.append(TOTAL[l][0])
-            NEWTOTAL = sum(NEWTOTAL)
-            CURSOR.execute("""
-                INSERT INTO
-            
-            
-            """)
-
-
-
-
+            WHERE
+                Year = ?
+            ;""",[NEWINFO[i]]).fetchall()
+        print(TOTAL)
+        NEWTOTAL = []
+        for l in range((len(TOTAL))):
+            NEWTOTAL.append(TOTAL[l][0])
+        NEWTOTAL = sum(NEWTOTAL)
+        GRAPH.append([NEWINFO[i], NEWTOTAL])
+    print(GRAPH)
+    X = []
+    Y = []
+    for t in range(len(GRAPH)):
+        X.append(GRAPH[t][0])
+        Y.append(GRAPH[t][1])
+    plt.figure(figsize=(9, 6))
+    plt.ylabel("Total Revenue")
+    plt.xlabel("Year")
+    plt.suptitle('Total Revenue Yearly')
+    plt.axis([X[0], X[len(X) - 1],0, 10000])
+    plt.plot(X, Y,"r")
+    plt.show()
 ### OUTPUTS
 
 def displayrevenue():

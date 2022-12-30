@@ -331,8 +331,7 @@ if __name__ == "__main__":
                 QUERYINFO = queryRev(YR)
                 displayquery(QUERYINFO)
             if OPTION == 5:
-                CHOICEGRAPH = askTypeGraph()
-                graphRev(CHOICEGRAPH)
+                graphRev()
         if CALCULATE == 2:
             pass
         if CALCULATE == 3:
