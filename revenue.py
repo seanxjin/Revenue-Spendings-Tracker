@@ -6,8 +6,6 @@ date-created: 2022-12-26
 import sqlite3
 import matplotlib.pyplot as plt
 from tabulate import tabulate
-from main import *
-
 ### INPUTS
 def askOption():
     """
@@ -20,6 +18,7 @@ def askOption():
     3. Delete existing data
     4. Search for a dataset
     5. Graphing
+    6. Back
     """)
     CHOICE = input("> ")
     try:
@@ -27,7 +26,7 @@ def askOption():
     except ValueError:
         print("Please enter a valid value")
         return askOption()
-    if CHOICE > 0 and CHOICE < 6:
+    if CHOICE > 0 and CHOICE < 7:
         return CHOICE
     else:
         print("Please enter a valid value")
@@ -50,38 +49,6 @@ def askRevData():
         return askRevData()
     REV = [ENTRY, YEAR, CATEGORY, TRANSACTION, AMOUNT]
     return REV
-def askRevId():
-    """
-    Displays all revenue data to the user and lets the user choose a primary key to update
-    :return: int -- > Primary Key
-    """
-    INFO = CURSOR.execute("""
-        SELECT
-            id,
-            Entry,
-            Year
-        FROM
-            revenue
-        ORDER BY
-            Year DESC
-    ;""").fetchall()
-    HEADER = ["id", "Entry", "Year"]
-    print("Please select a id")
-    print(tabulate(INFO,HEADER,tablefmt="fancy_outline"))
-    CHOICE = input("> ")
-    ID = []
-    if CHOICE.isnumeric():
-        CHOICE = int(CHOICE)
-    else:
-        print("Please enter a number")
-        return askRevId()
-    for i in range(len(INFO)):
-        ID.append(INFO[i][0])
-    if CHOICE not in ID:
-        print("Please enter a possible number")
-        return askRevId()
-    else:
-        return CHOICE
 def askRevYr():
     """
     Asks the year from the user, and uses that info to query the database
@@ -96,186 +63,11 @@ def askRevYr():
         return askRevYr()
     return YR
 ### PROCESSING
-def queryRev(YR):
-    """
-    Searches for the info in the database that contains that year
-    :param YR: int
-    :return: 2d array
-    """
-    global CURSOR, CONNECTION
-    QUERY = CURSOR.execute("""
-        SELECT
-            *
-        FROM 
-            revenue
-        WHERE
-            Year = ?
-    ;""",[YR]).fetchall()
-    return QUERY
-def updateRev(ID):
-    """
-    Updates the info on the revenue
-    :param INFO: int
-    :return: none
-    """
-    global CURSOR, CONNECTION
-    # INPUTS
-    INFO = CURSOR.execute("""
-        SELECT
-            Entry,
-            Year,
-            Category,
-            Trans_action,
-            Amount
-        FROM
-            revenue
-        WHERE
-            id = ?
-    ;""",[ID]).fetchone()
-    print("Leave field blank for no changes")
-    ENTRY = input(f"Entry: ({INFO[0]}) ")
-    YEAR = input(f"Year: ({INFO[1]}) ")
-    CATEGORY = input(f"Category: ({INFO[2]}) ")
-    TRANSACTION = input(f"Transaction: ({INFO[3]}) (1 for Debit, 2 for Credit) ")
-    AMOUNT = input(f"Amount: ({INFO[4]}) ")
-    NEW = [ENTRY, YEAR, CATEGORY, TRANSACTION, AMOUNT]
-    for i in range(len(NEW)):
-        if NEW[i] == "":
-            NEW[i] = INFO[i]
-    try:
-        NEW[1] = int(NEW[1])
-        NEW[4] = float(NEW[4])
-    except:
-        print("Please enter valid values")
-        return updateRev(ID)
-    # PROCESSING
-    NEW.append(ID)
-    CURSOR.execute("""
-        UPDATE
-            revenue
-        SET
-            Entry = ?,
-            Year = ?,
-            Category = ?,
-            Trans_action = ?,
-            Amount = ?
-        WHERE
-            id = ?
-    ;""", NEW)
-    CONNECTION.commit()
-    # OUTPUTS
-    print(f"{NEW[5]} was successfully updated!")
-def deleteRev(ID):
-    """
-    Deletes the row of data that the user has chosen to delete
-    :param ID: int -- > primary key
-    :return: none
-    """
-    global CURSOR, CONNECTION
-    CURSOR.execute("""
-        DELETE FROM 
-            revenue
-        WHERE
-            id = ?
-    """, [ID])
-    CONNECTION.commit()
-    print(f"{ID} successfully deleted!")
-def addRevData(INFO):
-    """
-    Adds the revenue data into the table in sequel
-    :param INFO: array
-    :return: none
-    """
-    global CURSOR, CONNECTION
-    CURSOR.execute("""
-        INSERT INTO
-            revenue (
-                Entry,
-                Year,
-                Category,
-                Trans_action,
-                Amount
-                )
-        VALUES (
-            ?, ?, ?, ?, ?
-            )
-    ;""", INFO)
-    CONNECTION.commit()
-    print("Data successfully added!")
-def graphRev():
-    """
-    Graphs all the current information using matplotlib
-    :return: none
-    """
-    global CURSOR, CONNECTION
-    INFO = CURSOR.execute("""
-        SELECT
-            Year
-        FROM
-            revenue
-    ;""").fetchall()
-    print(INFO)
-    NEWINFO = []
-    for k in range(len(INFO)):
-        for j in range(len(INFO)):
-            if INFO[k][0] == INFO[j][0]:
-                if INFO[j][0] in NEWINFO:
-                    pass
-                else:
-                    NEWINFO.append(INFO[j][0])
-    print(NEWINFO)
-    GRAPH = []
-    for i in range(len(NEWINFO)):
-        TOTAL = CURSOR.execute("""
-            SELECT
-                Amount
-            FROM 
-                revenue
-            WHERE
-                Year = ?
-            ;""",[NEWINFO[i]]).fetchall()
-        print(TOTAL)
-        NEWTOTAL = []
-        for l in range((len(TOTAL))):
-            NEWTOTAL.append(TOTAL[l][0])
-        NEWTOTAL = sum(NEWTOTAL)
-        GRAPH.append([NEWINFO[i], NEWTOTAL])
-    print(GRAPH)
-    X = []
-    Y = []
-    for t in range(len(GRAPH)):
-        X.append(GRAPH[t][0])
-        Y.append(GRAPH[t][1])
-    plt.figure(figsize=(9, 6))
-    plt.ylabel("Total Revenue")
-    plt.xlabel("Year")
-    plt.suptitle('Total Revenue Yearly')
-    plt.axis([X[0], X[len(X) - 1],0, 10000])
-    plt.plot(X, Y,"r")
-    plt.show()
+
 ### OUTPUTS
 
-def displayrevenue():
-    """
-    Displays the recent 3 inputs of revenue in the table of revenues
-    :return: none
-    """
-    global CURSOR, CONNECTION
-    HEADER = ["id", "Entry","Year","Category","Transaction", "Amount"]
-    DISPLAY = []
-    REVENUE = CURSOR.execute("""
-                SELECT 
-                    *
-                FROM 
-                    revenue
-                ORDER BY 
-                    Year ASC
-            ;""").fetchall()
-    for i in range(1,4):
-        DISPLAY.append(REVENUE[len(REVENUE) - i])
-    print("Recent Transactions")
-    print(tabulate(DISPLAY,HEADER, tablefmt="fancy_outline", floatfmt=".2f"))
-def displayquery(QUERYINFO):
+
+def displayqueryRev(QUERYINFO):
     """
     Displays the info from the year the user has inputted
     :param QUERYINFO: 2d array
@@ -291,5 +83,9 @@ def displayquery(QUERYINFO):
             pass
         else:
             pass
+# --- VARIABLES --- #
+
+
+
 if __name__ == "__main__":
     displayrevenue()
