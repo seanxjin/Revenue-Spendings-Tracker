@@ -400,7 +400,6 @@ def deleteRev(ID):
             id = ?
     """, [ID])
     CONNECTION.commit()
-    print(f"{ID} successfully deleted!")
 def addRevData(INFO):
     """
     Adds the revenue data into the table in sequel
@@ -422,11 +421,10 @@ def addRevData(INFO):
             )
     ;""", INFO)
     CONNECTION.commit()
-    print("Data successfully added!")
-def graphRev():
+def configureRev():
     """
-    Graphs all the current information using matplotlib
-    :return: none
+    Configures the data for reveneue, finds the different years, and finds the total from each year and puts it into an array.
+    :return: 2d array
     """
     global CURSOR, CONNECTION
     INFO = CURSOR.execute("""
@@ -444,7 +442,6 @@ def graphRev():
                     pass
                 else:
                     NEWINFO.append(INFO[j][0])
-    print(NEWINFO)
     GRAPH = []
     for i in range(len(NEWINFO)):
         TOTAL = CURSOR.execute("""
@@ -455,25 +452,12 @@ def graphRev():
             WHERE
                 Year = ?
             ;""",[NEWINFO[i]]).fetchall()
-        print(TOTAL)
         NEWTOTAL = []
         for l in range((len(TOTAL))):
             NEWTOTAL.append(TOTAL[l][0])
         NEWTOTAL = sum(NEWTOTAL)
         GRAPH.append([NEWINFO[i], NEWTOTAL])
-    print(GRAPH)
-    X = []
-    Y = []
-    for t in range(len(GRAPH)):
-        X.append(GRAPH[t][0])
-        Y.append(GRAPH[t][1])
-    plt.figure(figsize=(9, 6))
-    plt.ylabel("Total Revenue")
-    plt.xlabel("Year")
-    plt.suptitle('Total Revenue Yearly')
-    plt.axis([X[0], X[len(X) - 1],0, 10000])
-    plt.plot(X, Y,"r")
-    plt.show()
+    return GRAPH
 # ----------- SPENDINGS PROCESSING ------------ #
 def addSpendData(INFO):
     """
@@ -497,10 +481,9 @@ def addSpendData(INFO):
                 )
         ;""", INFO)
     CONNECTION.commit()
-    print("Data successfully added!")
 def updateSpend(ID):
     """
-    Updates the spendings data into the table
+    Gets the user information and updates the spendings data into the table
     :param ID: int
     :return: none
     """
@@ -553,8 +536,6 @@ def updateSpend(ID):
                 id = ?
         ;""", NEW)
     CONNECTION.commit()
-    # OUTPUTS
-    print(f"{NEW[6]} was successfully updated!")
 def deleteSpend(ID):
     """
     Deletes a row of data in the table of spendings
@@ -630,7 +611,6 @@ def graphSpend():
     plt.ylabel("Total Spendings")
     plt.xlabel("Year")
     plt.suptitle('Total Spendings Yearly')
-    plt.axis([X[0], X[len(X) - 1],0, NEWTOTAL + 1000])
     plt.plot(X, Y,"r")
     plt.show()
 # ------------- Revenue v.s Spendings PROCESSING--------------#
@@ -785,6 +765,24 @@ def displayrevenue():
         DISPLAY.append(REVENUE[len(REVENUE) - i])
     print("Recent Transactions")
     print(tabulate(DISPLAY,HEADER, tablefmt="fancy_outline", floatfmt=".2f"))
+def graphRev(GRAPH):
+    """
+    Graphs all the current information using matplotlib
+    :param GRAPH: 2d array
+    :return: none
+    """
+    X = []
+    Y = []
+    print(GRAPH)
+    for t in range(len(GRAPH)):
+        X.append(GRAPH[t][0])
+        Y.append(GRAPH[t][1])
+    plt.figure(figsize=(9, 6))
+    plt.ylabel("Total Revenue")
+    plt.xlabel("Year")
+    plt.suptitle('Total Revenue Yearly')
+    plt.plot(X, Y,"r")
+    plt.show()
 # --------- SPENDINGS OUTPUTS ----------- #
 def displayspendings():
     """
@@ -810,53 +808,85 @@ def displayspendings():
 
 # -------------------------- MAIN PROGRAM CODE --------------------------- #
 if __name__ == "__main__":
+# Setup Tables/Create a new password
     if FIRST_RUN:
         REVENUE = getValues("Revenue - Sheet1.csv")
-        print(REVENUE)
         setupRevenue(REVENUE)
         SPENDINGS = getValues("Spendings - Sheet1.csv")
         setupSpendings(SPENDINGS)
-        print(SPENDINGS)
         setupRevAndSpend()
         storePass()
+# Password Checking
     while START == 0:
+        # --- INPUTS --- #
         CHOICE = choiceLoginOrUpdate()
         if CHOICE == 1:
+            # INPUT
             ASK = askPassword()
+            # PROCESSING
             START = confirmPassword(ASK)
         if CHOICE == 2:
+            # INPUT
             ASK = askPassword()
+            # PROCESSING
             PASSWORD = setNewPassword(ASK)
     while RUN:
+        # INPUT
         CALCULATE = askCalculation()
         if CALCULATE == 1:
+            # OUTPUT
             displayrevenue()
+            # INPUT
             OPTION = askOption()
             if OPTION == 1:
+                # INPUT
                 REVINFO = askRevData()
+                # PROCESSING
                 addRevData(REVINFO)
+                # OUTPUT
+                print("Data successfully added!")
             if OPTION == 2:
+                # INPUT
                 ID = askRevId()
+                # INPUT/PROCESSING/OUTPUT
                 updateRev(ID)
             if OPTION == 3:
+                # INPUT
                 ID = askRevId()
+                # PROCESSING
                 deleteRev(ID)
+                # OUTPUTS
+                print(f"{ID} successfully deleted!")
             if OPTION == 4:
+                # INPUT
                 YR = askRevYr()
+                # PROCESSING
                 QUERYREVINFO = queryRev(YR)
+                # OUTPUT
                 displayqueryRev(QUERYREVINFO)
             if OPTION == 5:
-                graphRev()
+                # PROCESSING
+                GRAPH = configureRev()
+                # OUTPUT
+                graphRev(GRAPH)
             if OPTION == 6:
                 pass
         if CALCULATE == 2:
+            # OUTPUT
             displayspendings()
+            # INPUT
             OPTION = askOption()
             if OPTION == 1:
+                # INPUT
                 SPENDINFO = askSpendData()
+                # PROCESSING
                 addSpendData(SPENDINFO)
+                # OUTPUT
+                print("Data successfully added!")
             if OPTION == 2:
+                # INPUT
                 SPENDID = askSpendID()
+                # INPUT/PROCESSING/OUTPUT
                 updateSpend(SPENDID)
             if OPTION == 3:
                 SPENDID = askSpendID()

@@ -87,5 +87,3 @@ def displayqueryRev(QUERYINFO):
 
 
 
-if __name__ == "__main__":
-    displayrevenue()
