@@ -48,4 +48,7 @@ def displayProfit(ANSWER):
     :param: ANSWER: float
     :return: none
     """
-    print(f"The profit is {ANSWER}")
+    if ANSWER == None:
+        print("There is no information in revenue or spendings for the current year.")
+    else:
+        print(f"The profit is {ANSWER}")

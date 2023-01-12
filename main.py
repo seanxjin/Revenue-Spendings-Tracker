@@ -629,37 +629,40 @@ def findProfits(YR):
         WHERE
             Year = ?
     ;""", [YR]).fetchall()
-    NEWINFOREV = []
-    for i in range(len(INFOREV)):
-        NEWINFOREV.append(INFOREV[i][0])
-    NEWINFOREV = sum(NEWINFOREV)
-    INFOSPEND = CURSOR.execute("""
-        SELECT
-            spendings.Amount
-        FROM
-            revenue
-        JOIN
-            spendings
-        ON
-            revenue.Year = spendings.Year
-        WHERE
-            revenue.Year = ?
-    ;""", [YR]).fetchall()
-    REVENUENUMBER = CURSOR.execute("""
-        SELECT
-            Year
-        FROM
-            revenue
-        WHERE
-            Year = ?
-    ;""", [YR]).fetchall()
-    NEWINFOSPEND = []
-    NUM = int(len(INFOSPEND)/len(REVENUENUMBER))
-    for i in range(NUM):
-        NEWINFOSPEND.append(INFOSPEND[i][0])
-    NEWINFOSPEND = sum(NEWINFOSPEND)
-    ANSWER = NEWINFOREV - NEWINFOSPEND
-    return ANSWER
+    if INFOREV == []:
+        return None
+    else:
+        NEWINFOREV = []
+        for i in range(len(INFOREV)):
+            NEWINFOREV.append(INFOREV[i][0])
+        NEWINFOREV = sum(NEWINFOREV)
+        INFOSPEND = CURSOR.execute("""
+            SELECT
+                spendings.Amount
+            FROM
+                revenue
+            JOIN
+                spendings
+            ON
+                revenue.Year = spendings.Year
+            WHERE
+                revenue.Year = ?
+        ;""", [YR]).fetchall()
+        REVENUENUMBER = CURSOR.execute("""
+            SELECT
+                Year
+            FROM
+                revenue
+            WHERE
+                Year = ?
+        ;""", [YR]).fetchall()
+        NEWINFOSPEND = []
+        NUM = int(len(INFOSPEND)/len(REVENUENUMBER))
+        for i in range(NUM):
+            NEWINFOSPEND.append(INFOSPEND[i][0])
+        NEWINFOSPEND = sum(NEWINFOSPEND)
+        ANSWER = NEWINFOREV - NEWINFOSPEND
+        return ANSWER
 def displayAllgraph():
     """
     Displays both the graph of the spendings and revenue
@@ -765,24 +768,6 @@ def displayrevenue():
         DISPLAY.append(REVENUE[len(REVENUE) - i])
     print("Recent Transactions")
     print(tabulate(DISPLAY,HEADER, tablefmt="fancy_outline", floatfmt=".2f"))
-def graphRev(GRAPH):
-    """
-    Graphs all the current information using matplotlib
-    :param GRAPH: 2d array
-    :return: none
-    """
-    X = []
-    Y = []
-    print(GRAPH)
-    for t in range(len(GRAPH)):
-        X.append(GRAPH[t][0])
-        Y.append(GRAPH[t][1])
-    plt.figure(figsize=(9, 6))
-    plt.ylabel("Total Revenue")
-    plt.xlabel("Year")
-    plt.suptitle('Total Revenue Yearly')
-    plt.plot(X, Y,"r")
-    plt.show()
 # --------- SPENDINGS OUTPUTS ----------- #
 def displayspendings():
     """

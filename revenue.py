@@ -65,8 +65,24 @@ def askRevYr():
 ### PROCESSING
 
 ### OUTPUTS
-
-
+def graphRev(GRAPH):
+    """
+    Graphs all the current information using matplotlib
+    :param GRAPH: 2d array
+    :return: none
+    """
+    X = []
+    Y = []
+    print(GRAPH)
+    for t in range(len(GRAPH)):
+        X.append(GRAPH[t][0])
+        Y.append(GRAPH[t][1])
+    plt.figure(figsize=(9, 6))
+    plt.ylabel("Total Revenue")
+    plt.xlabel("Year")
+    plt.suptitle('Total Revenue Yearly')
+    plt.plot(X, Y,"r")
+    plt.show()
 def displayqueryRev(QUERYINFO):
     """
     Displays the info from the year the user has inputted
