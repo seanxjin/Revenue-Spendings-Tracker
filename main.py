@@ -110,6 +110,7 @@ def askCalculation():
     1. Revenue 
     2. Spendings
     3. Revenue vs Spendings
+    4. Exit
     """)
     CHOICE = input("> ")
     try:
@@ -117,7 +118,7 @@ def askCalculation():
     except ValueError:
         print("Please input possible integer")
         return askCalculation()
-    if CHOICE == 1 or CHOICE == 2 or CHOICE == 3:
+    if CHOICE == 1 or CHOICE == 2 or CHOICE == 3 or CHOICE == 4:
         return CHOICE
     else:
         print("Please input possible integer")
@@ -589,7 +590,6 @@ def deleteSpend(ID):
                 id = ?
         """, [ID])
     CONNECTION.commit()
-    print(f"{ID} successfully deleted!")
 def querySpend(YR):
     """
     Searches for the data that has the year in it
@@ -606,10 +606,10 @@ def querySpend(YR):
                 Year = ?
         ;""", [YR]).fetchall()
     return QUERY
-def graphSpend():
+def getInfoSpend():
     """
-    Graphs the information of the spendings table
-    :return: none
+    Configures the information for the graph, grabs the total amounts from each year and adds them up.
+    :return: list --> array
     """
     global CURSOR, CONNECTION
     INFO = CURSOR.execute("""
@@ -646,6 +646,14 @@ def graphSpend():
     for t in range(len(GRAPH)):
         X.append(GRAPH[t][0])
         Y.append(GRAPH[t][1])
+    return X, Y
+def graphSpend(X, Y):
+    """
+    Graphs the information of the spendings table
+    :param: X: array
+    :param Y: array
+    :return: none
+    """
     plt.figure(figsize=(9, 6))
     plt.ylabel("Total Spendings")
     plt.xlabel("Year")
@@ -656,7 +664,7 @@ def graphSpend():
 def findProfits(YR):
     """
     Finds the profits of a specific year by adding up all the revenue of that year and all the spendings of that year and subtracting it from each other.
-    :param YR: int
+    :param: YR: int
     :return: int
     """
     global CURSOR, CONNECTION
@@ -675,9 +683,11 @@ def findProfits(YR):
         for i in range(len(INFOREV)):
             NEWINFOREV.append(INFOREV[i][0])
         NEWINFOREV = sum(NEWINFOREV)
+        print(NEWINFOREV)
         INFOSPEND = CURSOR.execute("""
             SELECT
-                spendings.Amount
+                spendings.Amount,
+                spendings.GST
             FROM
                 revenue
             JOIN
@@ -695,12 +705,17 @@ def findProfits(YR):
             WHERE
                 Year = ?
         ;""", [YR]).fetchall()
+
         NEWINFOSPEND = []
         NUM = int(len(INFOSPEND)/len(REVENUENUMBER))
         for i in range(NUM):
-            NEWINFOSPEND.append(INFOSPEND[i][0])
+            for j in range(2):
+                NEWINFOSPEND.append(INFOSPEND[i][j])
+        print(NEWINFOSPEND)
         NEWINFOSPEND = sum(NEWINFOSPEND)
+        print(NEWINFOSPEND)
         ANSWER = NEWINFOREV - NEWINFOSPEND
+        ANSWER = round(ANSWER, 2)
         return ANSWER
 def displayAllgraph():
     """
@@ -913,14 +928,24 @@ if __name__ == "__main__":
                 # INPUT/PROCESSING/OUTPUT
                 updateSpend(SPENDID)
             if OPTION == 3:
+                # INPUT
                 SPENDID = askSpendID()
+                # PROCESSING
                 deleteSpend(SPENDID)
+                # OUTPUT
+                print(f"{SPENDID} successfully deleted!")
             if OPTION == 4:
+                # INPUT
                 YR = askSpendYr()
+                # PROCESSING
                 QUERYSPENDINFO = querySpend(YR)
+                # OUTPUT
                 displayquerySpend(QUERYSPENDINFO)
             if OPTION == 5:
-                graphSpend()
+                # PROCESSING
+                XSPEND, YSPEND = getInfoSpend()
+                # OUTPUT
+                graphSpend(XSPEND, YSPEND)
             if OPTION == 6:
                 pass
         if CALCULATE == 3:
@@ -933,3 +958,5 @@ if __name__ == "__main__":
                 displayAllgraph()
             if DECISION == 3:
                 pass
+        if CALCULATE == 4:
+            exit()
