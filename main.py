@@ -167,7 +167,8 @@ def askSpendID():
         SELECT
             id,
             Entry,
-            Year
+            Year,
+            Amount
         FROM
             spendings
         ORDER BY
@@ -182,16 +183,42 @@ def askSpendID():
         CHOICE = int(CHOICE)
     else:
         print("Please enter a number")
-        return askRevId()
+        return askSpendID()
     for i in range(len(INFO)):
         ID.append(INFO[i][0])
     if CHOICE not in ID:
         print("Please enter a possible number")
-        return askRevId()
+        return askSpendID()
     else:
         return CHOICE
 
 ### PROCESSING
+def checkInt(NUM):
+    """
+    A recursive function that checks the added input is an int
+    :param: NUM: str
+    :return: int
+    """
+    try:
+        NUM = int(NUM)
+        return NUM
+    except ValueError:
+        print("Please enter a possible value")
+        NEW_NUM = input("> ")
+        return checkInt(NEW_NUM)
+def checkFloat(NUM):
+    """
+    A recursive function that checks the added input is a float
+    :param NUM: str
+    :return: float
+    """
+    try:
+        NUM = float(NUM)
+    except ValueError:
+        print("Please enter a possible value")
+        NEW_NUM = input("> ")
+        return checkFloat(NEW_NUM)
+    return NUM
 def getValues(FILENAME):
     """
     Extracts contents of file and put it into 2d array
@@ -317,6 +344,7 @@ def setupRevAndSpend():
     ;""")
     CONNECTION.commit()
 # -------- REVENUE PROCESSING ------------ #
+
 def queryRev(YR):
     """
     Searches for the info in the database that contains that year
@@ -336,7 +364,7 @@ def queryRev(YR):
 def updateRev(ID):
     """
     Updates the info on the revenue
-    :param INFO: int
+    :param ID: int
     :return: none
     """
     global CURSOR, CONNECTION
@@ -355,20 +383,31 @@ def updateRev(ID):
     ;""",[ID]).fetchone()
     print("Leave field blank for no changes")
     ENTRY = input(f"Entry: ({INFO[0]}) ")
+    if ENTRY == "":
+        ENTRY = INFO[0]
     YEAR = input(f"Year: ({INFO[1]}) ")
-    CATEGORY = input(f"Category: ({INFO[2]}) ")
-    TRANSACTION = input(f"Transaction: ({INFO[3]}) ")
-    AMOUNT = input(f"Amount: ({INFO[4]}) ")
-    NEW = [ENTRY, YEAR, CATEGORY, TRANSACTION, AMOUNT]
-    for i in range(len(NEW)):
-        if NEW[i] == "":
-            NEW[i] = INFO[i]
+    if YEAR == "":
+        YEAR = INFO[1]
     try:
-        NEW[1] = int(NEW[1])
-        NEW[4] = float(NEW[4])
-    except:
-        print("Please enter valid values")
+        YEAR = int(YEAR)
+    except ValueError:
+        print("The input for year is not applicable, please enter a valid integer")
         return updateRev(ID)
+    CATEGORY = input(f"Category: ({INFO[2]}) ")
+    if CATEGORY == "":
+        CATEGORY = INFO[2]
+    TRANSACTION = input(f"Transaction: ({INFO[3]}) ")
+    if TRANSACTION == "":
+        TRANSACTION = INFO[3]
+    AMOUNT = input(f"Amount: ({INFO[4]}) ")
+    if AMOUNT == "":
+        AMOUNT = INFO[4]
+    try:
+        AMOUNT = float(AMOUNT)
+    except ValueError:
+        print("The input for amount is not applicable, please enter a valid float")
+        return updateRev(ID)
+    NEW = [ENTRY, YEAR, CATEGORY, TRANSACTION, AMOUNT]
     # PROCESSING
     NEW.append(ID)
     CURSOR.execute("""

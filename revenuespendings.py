@@ -4,7 +4,6 @@ author: Sean Jin
 date-created:2022-12-30
 '''
 
-import matplotlib
 
 
 ### INPUTS

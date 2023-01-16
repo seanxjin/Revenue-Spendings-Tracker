@@ -3,7 +3,6 @@ title: revenue calculator
 author: Sean Jin
 date-created: 2022-12-26
 '''
-import sqlite3
 import matplotlib.pyplot as plt
 from tabulate import tabulate
 ### INPUTS
@@ -36,17 +35,13 @@ def askRevData():
     Asks the user for the revenue data that is about to be inputted
     :return: Array
     """
-    ENTRY = input("Entry: ")
-    YEAR = input("Year: ")
-    CATEGORY = input("Category: ")
-    TRANSACTION = input("Transaction: ")
-    AMOUNT = input("Amount: ")
-    try:
-        YEAR = int(YEAR)
-        AMOUNT = float(AMOUNT)
-    except:
-        print("Please enter valid values")
-        return askRevData()
+    ENTRY = input("Entry (A brief word regarding the context of the revenue): ")
+    YEAR = input("Year (Integer): ")
+    YEAR = _checkInt(YEAR)
+    CATEGORY = input("Category (Donation, Payment, Fee, or other): ")
+    TRANSACTION = input("Transaction (Type of transaction): ")
+    AMOUNT = input("Amount (Total gained): ")
+    AMOUNT = _checkFloat(AMOUNT)
     REV = [ENTRY, YEAR, CATEGORY, TRANSACTION, AMOUNT]
     return REV
 def askRevYr():
@@ -54,7 +49,7 @@ def askRevYr():
     Asks the year from the user, and uses that info to query the database
     :return: int
     """
-    print("Input Year:")
+    print("Input the year of the data:")
     YR = input("> ")
     try:
         YR = int(YR)
@@ -63,7 +58,32 @@ def askRevYr():
         return askRevYr()
     return YR
 ### PROCESSING
-
+def _checkInt(NUM):
+    """
+    A recursive function that checks the added input is an int
+    :param: NUM: str
+    :return: int
+    """
+    try:
+        NUM = int(NUM)
+        return NUM
+    except ValueError:
+        print("Please enter a possible value")
+        NEW_NUM = input("> ")
+        return _checkInt(NEW_NUM)
+def _checkFloat(NUM):
+    """
+    A recursive function that checks the added input is a float
+    :param NUM: str
+    :return: float
+    """
+    try:
+        NUM = float(NUM)
+    except ValueError:
+        print("Please enter a possible value")
+        NEW_NUM = input("> ")
+        return _checkFloat(NEW_NUM)
+    return NUM
 ### OUTPUTS
 def graphRev(GRAPH):
     """
