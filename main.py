@@ -1165,7 +1165,9 @@ if __name__ == "__main__":
                 # OUTPUT
                 displayProfit(ANSWER)
             if DECISION == 2:
+                # PROCESSING
                 GRAPHSPEND, GRAPHREV = getInfoAll()
+                # OUTPUT
                 displayAllgraph(GRAPHSPEND, GRAPHREV)
             if DECISION == 3:
                 pass
