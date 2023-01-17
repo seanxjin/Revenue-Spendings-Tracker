@@ -5,9 +5,8 @@ date-created: 2022-12-14
 '''
 import sqlite3
 import pathlib
-from revenue import *
-from spendings import *
-from revenuespendings import *
+import matplotlib.pyplot as plt
+from tabulate import tabulate
 # --- VARIABLES --- #
 START = 0
 RUN = True
@@ -157,6 +156,57 @@ def askRevId():
         return askRevId()
     else:
         return CHOICE
+def askOption():
+    """
+    Asks the user which of the following calculations they want to do for revenue
+    :return: int
+    """
+    print("""Please Choose a Integer
+    1. Add new data
+    2. Update data
+    3. Delete existing data
+    4. Search for a dataset
+    5. Graphing
+    6. Back
+    """)
+    CHOICE = input("> ")
+    try:
+        CHOICE = int(CHOICE)
+    except ValueError:
+        print("Please enter a valid value")
+        return askOption()
+    if CHOICE > 0 and CHOICE < 7:
+        return CHOICE
+    else:
+        print("Please enter a valid value")
+        return askOption()
+def askRevData():
+    """
+    Asks the user for the revenue data that is about to be inputted
+    :return: Array
+    """
+    ENTRY = input("Entry (A brief word regarding the context of the revenue): ")
+    YEAR = input("Year (Integer): ")
+    YEAR = checkInt(YEAR)
+    CATEGORY = input("Category (Donation, Payment, Fee, or other): ")
+    TRANSACTION = input("Transaction (Type of transaction): ")
+    AMOUNT = input("Amount (Total gained): ")
+    AMOUNT = checkFloat(AMOUNT)
+    REV = [ENTRY, YEAR, CATEGORY, TRANSACTION, AMOUNT]
+    return REV
+def askRevYr():
+    """
+    Asks the year from the user, and uses that info to query the database
+    :return: int
+    """
+    print("Input the year of the data:")
+    YR = input("> ")
+    try:
+        YR = int(YR)
+    except ValueError:
+        print("Please input a valid number")
+        return askRevYr()
+    return YR
 # ----------- SPENDINGS INPUTS ------------- #
 def askSpendID():
     """
@@ -192,7 +242,68 @@ def askSpendID():
         return askSpendID()
     else:
         return CHOICE
-
+def askSpendData():
+    """
+    Asks the user for the information they want to add to the spendings database
+    :return: array
+    """
+    ENTRY = input("Entry (A brief word regarding the context of the revenue): ")
+    YEAR = input("Year (Integer): ")
+    YEAR = checkInt(YEAR)
+    TRANSACTION = input("Transaction (Type of transaction): ")
+    CATEGORY = input("Category (Donation, Payment, Fee, or other): ")
+    AMOUNT = input("Amount (Amount lost before taxes): ")
+    AMOUNT = checkFloat(AMOUNT)
+    GST = AMOUNT * 0.05
+    SPEND = [ENTRY,YEAR, TRANSACTION, CATEGORY, AMOUNT, GST]
+    return SPEND
+def askSpendYr():
+    """
+    Asks for the year of the data the user wants to see
+    :return: int
+    """
+    print("Input the year of the data:")
+    YR = input("> ")
+    try:
+        YR = int(YR)
+    except ValueError:
+        print("Please input a valid number")
+        return askSpendYr()
+    return YR
+# ---- REVENUE V.S SPENDINGS INPUTS ---- #
+def askChoice():
+    """
+    Asks the user what they want to calculate for the revenue vs spendings
+    :return: int
+    """
+    print("""Please choose a integer
+    1. Find Profits in a specific year
+    2. Graph revenue v.s spendings
+    3. Back
+    """)
+    CHOICE = input("> ")
+    try:
+        CHOICE = int(CHOICE)
+    except ValueError:
+        print("Please enter a valid number")
+        return askChoice()
+    if CHOICE > 0 and CHOICE < 4:
+        return CHOICE
+    else:
+        print("Please enter a valid number")
+        return askChoice()
+def askYr():
+    """
+    Asks the user the year they want to calculate
+    :return: int
+    """
+    YEAR = input("Year: ")
+    try:
+        YEAR = int(YEAR)
+    except ValueError:
+        print("Please enter a number")
+        return askYr()
+    return YEAR
 ### PROCESSING
 def checkInt(NUM):
     """
@@ -364,7 +475,7 @@ def queryRev(YR):
     return QUERY
 def updateRev(ID):
     """
-    Updates the info on the revenue
+    Displays all current data for revenue, and user will input new information in the place of the chosen revenue spot, and then the system will update.
     :param ID: int
     :return: none
     """
@@ -424,8 +535,6 @@ def updateRev(ID):
             id = ?
     ;""", NEW)
     CONNECTION.commit()
-    # OUTPUTS
-    print(f"{NEW[5]} was successfully updated!")
 def deleteRev(ID):
     """
     Deletes the row of data that the user has chosen to delete
@@ -463,7 +572,7 @@ def addRevData(INFO):
     CONNECTION.commit()
 def configureRev():
     """
-    Configures the data for reveneue, finds the different years, and finds the total from each year and puts it into an array.
+    Configures the data for revenue, finds the different years, and finds the total from each year and puts it into an array.
     :return: 2d array
     """
     global CURSOR, CONNECTION
@@ -473,7 +582,6 @@ def configureRev():
         FROM
             revenue
     ;""").fetchall()
-    print(INFO)
     NEWINFO = []
     for k in range(len(INFO)):
         for j in range(len(INFO)):
@@ -544,20 +652,31 @@ def updateSpend(ID):
         ;""", [ID]).fetchone()
     print("Leave field blank for no changes")
     ENTRY = input(f"Entry: ({INFO[0]}) ")
+    if ENTRY == "":
+        ENTRY = INFO[0]
     YEAR = input(f"Year: ({INFO[1]}) ")
-    CATEGORY = input(f"Category: ({INFO[2]}) ")
-    TRANSACTION = input(f"Transaction: ({INFO[3]}) ")
-    AMOUNT = input(f"Amount: ({INFO[4]}) ")
-    NEW = [ENTRY, YEAR, CATEGORY, TRANSACTION, AMOUNT]
-    for i in range(len(NEW)):
-        if NEW[i] == "":
-            NEW[i] = INFO[i]
+    if YEAR == "":
+        YEAR = INFO[1]
     try:
-        NEW[1] = int(NEW[1])
-        NEW[4] = float(NEW[4])
-    except:
-        print("Please enter valid values")
-        return updateRev(ID)
+        YEAR = int(YEAR)
+    except ValueError:
+        print("The input for year is not applicable, please enter a valid integer")
+        return updateSpend(ID)
+    CATEGORY = input(f"Category: ({INFO[2]}) ")
+    if CATEGORY == "":
+        CATEGORY = INFO[2]
+    TRANSACTION = input(f"Transaction: ({INFO[3]}) ")
+    if TRANSACTION == "":
+        TRANSACTION = INFO[3]
+    AMOUNT = input(f"Amount: ({INFO[4]}) ")
+    if AMOUNT == "":
+        AMOUNT = INFO[4]
+    try:
+        AMOUNT = float(AMOUNT)
+    except ValueError:
+        print("The input for amount is not applicable, please enter a valid float")
+        return updateSpend(ID)
+    NEW = [ENTRY, YEAR, CATEGORY, TRANSACTION, AMOUNT]
     GST = NEW[4] * 0.05
     NEW.append(GST)
     # PROCESSING
@@ -647,19 +766,6 @@ def getInfoSpend():
         X.append(GRAPH[t][0])
         Y.append(GRAPH[t][1])
     return X, Y
-def graphSpend(X, Y):
-    """
-    Graphs the information of the spendings table
-    :param: X: array
-    :param Y: array
-    :return: none
-    """
-    plt.figure(figsize=(9, 6))
-    plt.ylabel("Total Spendings")
-    plt.xlabel("Year")
-    plt.suptitle('Total Spendings Yearly')
-    plt.plot(X, Y,"r")
-    plt.show()
 # ------------- Revenue v.s Spendings PROCESSING--------------#
 def findProfits(YR):
     """
@@ -677,58 +783,77 @@ def findProfits(YR):
             Year = ?
     ;""", [YR]).fetchall()
     if INFOREV == []:
-        return None
+        INFOREV = 0
+        INFOSPEND = CURSOR.execute("""
+            SELECT
+                AMOUNT
+            FROM 
+                spendings
+            WHERE
+                Year = ?
+        ;""", [YR]).fetchall()
+        if INFOSPEND == []:
+            return None
+        else:
+            NEWINFOSPEND = []
+            for i in range(len(INFOSPEND)):
+                for j in range(len(INFOSPEND[i])):
+                    NEWINFOSPEND.append(INFOSPEND[i][j])
+            NEWINFOSPEND = sum(NEWINFOSPEND)
+            ANSWER = INFOREV - NEWINFOSPEND
+            ANSWER = round(ANSWER, 2)
+            return ANSWER
     else:
+        INFOSPEND = CURSOR.execute("""
+                SELECT
+                    spendings.Amount,
+                    spendings.GST
+                FROM
+                    revenue
+                JOIN
+                    spendings
+                ON
+                    revenue.Year = spendings.Year
+                WHERE
+                    revenue.Year = ?
+            ;""", [YR]).fetchall()
+        REVENUENUMBER = CURSOR.execute("""
+                SELECT
+                    Year
+                FROM
+                    revenue
+                WHERE
+                    Year = ?
+            ;""", [YR]).fetchall()
+        print(REVENUENUMBER)
         NEWINFOREV = []
         for i in range(len(INFOREV)):
             NEWINFOREV.append(INFOREV[i][0])
         NEWINFOREV = sum(NEWINFOREV)
-        print(NEWINFOREV)
-        INFOSPEND = CURSOR.execute("""
-            SELECT
-                spendings.Amount,
-                spendings.GST
-            FROM
-                revenue
-            JOIN
-                spendings
-            ON
-                revenue.Year = spendings.Year
-            WHERE
-                revenue.Year = ?
-        ;""", [YR]).fetchall()
-        REVENUENUMBER = CURSOR.execute("""
-            SELECT
-                Year
-            FROM
-                revenue
-            WHERE
-                Year = ?
-        ;""", [YR]).fetchall()
-
-        NEWINFOSPEND = []
-        NUM = int(len(INFOSPEND)/len(REVENUENUMBER))
-        for i in range(NUM):
-            for j in range(2):
-                NEWINFOSPEND.append(INFOSPEND[i][j])
-        print(NEWINFOSPEND)
-        NEWINFOSPEND = sum(NEWINFOSPEND)
-        print(NEWINFOSPEND)
+        if INFOSPEND == []:
+            NEWINFOSPEND = 0
+        else:
+            NEWINFOSPEND = []
+            NUM = int(len(INFOSPEND)/len(REVENUENUMBER))
+            for i in range(NUM):
+                for j in range(2):
+                    NEWINFOSPEND.append(INFOSPEND[i][j])
+            NEWINFOSPEND = sum(NEWINFOSPEND)
         ANSWER = NEWINFOREV - NEWINFOSPEND
         ANSWER = round(ANSWER, 2)
         return ANSWER
-def displayAllgraph():
+def getInfoAll():
     """
-    Displays both the graph of the spendings and revenue
-    :return: none
+    Gets the info from all the different years and find the total amount from each specific year in both revenue and spending.
+    :return: array
     """
     global CURSOR, CONNECTION
     INFO = CURSOR.execute("""
-        SELECT
-            Year
-        FROM
-            spendings
-    ;""").fetchall()
+           SELECT
+               Year
+           FROM
+               spendings
+       ;""").fetchall()
     NEWINFO = []
     for k in range(len(INFO)):
         for j in range(len(INFO)):
@@ -740,29 +865,24 @@ def displayAllgraph():
     GRAPH = []
     for i in range(len(NEWINFO)):
         TOTAL = CURSOR.execute("""
-            SELECT
-                Amount
-            FROM 
-                spendings
-            WHERE
-                Year = ?
-            ;""",[NEWINFO[i]]).fetchall()
+               SELECT
+                   Amount
+               FROM 
+                   spendings
+               WHERE
+                   Year = ?
+               ;""", [NEWINFO[i]]).fetchall()
         NEWTOTAL = []
         for l in range((len(TOTAL))):
             NEWTOTAL.append(TOTAL[l][0])
         NEWTOTAL = sum(NEWTOTAL)
         GRAPH.append([NEWINFO[i], NEWTOTAL])
-    X = []
-    Y = []
-    for t in range(len(GRAPH)):
-        X.append(GRAPH[t][0])
-        Y.append(GRAPH[t][1])
     INFOREV = CURSOR.execute("""
-        SELECT
-            Year
-        FROM
-            revenue
-    ;""").fetchall()
+            SELECT
+                Year
+            FROM
+                revenue
+        ;""").fetchall()
     NEWINFOREV = []
     for k in range(len(INFOREV)):
         for j in range(len(INFOREV)):
@@ -774,18 +894,30 @@ def displayAllgraph():
     GRAPHREV = []
     for i in range(len(NEWINFOREV)):
         TOTALREV = CURSOR.execute("""
-            SELECT
-                Amount
-            FROM 
-                revenue
-            WHERE
-                Year = ?
-            ;""",[NEWINFOREV[i]]).fetchall()
+                SELECT
+                    Amount
+                FROM 
+                    revenue
+                WHERE
+                    Year = ?
+                ;""", [NEWINFOREV[i]]).fetchall()
         NEWTOTALREV = []
         for l in range((len(TOTALREV))):
             NEWTOTALREV.append(TOTALREV[l][0])
         NEWTOTALREV = sum(NEWTOTALREV)
         GRAPHREV.append([NEWINFOREV[i], NEWTOTALREV])
+    return GRAPH, GRAPHREV
+def displayAllgraph(GRAPHSPEND, GRAPHREV):
+    """
+    Displays both the graph of the spendings and revenue
+    :param: GRAPH: array
+    :return: none
+    """
+    X = []
+    Y = []
+    for t in range(len(GRAPHSPEND)):
+        X.append(GRAPHSPEND[t][0])
+        Y.append(GRAPHSPEND[t][1])
     A = []
     B = []
     for t in range(len(GRAPHREV)):
@@ -822,6 +954,39 @@ def displayrevenue():
         DISPLAY.append(REVENUE[len(REVENUE) - i])
     print("Recent Transactions")
     print(tabulate(DISPLAY,HEADER, tablefmt="fancy_outline", floatfmt=".2f"))
+def graphRev(GRAPH):
+    """
+    Graphs all the current information using matplotlib
+    :param GRAPH: 2d array
+    :return: none
+    """
+    X = []
+    Y = []
+    for t in range(len(GRAPH)):
+        X.append(GRAPH[t][0])
+        Y.append(GRAPH[t][1])
+    plt.figure(figsize=(9, 6))
+    plt.ylabel("Total Revenue")
+    plt.xlabel("Year")
+    plt.suptitle('Total Revenue Yearly')
+    plt.plot(X, Y,"r")
+    plt.show()
+def displayqueryRev(QUERYINFO):
+    """
+    Displays the info from the year the user has inputted
+    :param QUERYINFO: 2d array
+    :return: none
+    """
+    HEADER = ["id", "Entry", "Year", "Category", "Transaction", "Amount"]
+    if QUERYINFO == []:
+        print("There is no existing information in this year")
+    else:
+        print(f"""Available Info
+{tabulate(QUERYINFO,HEADER,tablefmt="fancy_outline" )}""")
+        if input("To proceed, press any button") == "r":
+            pass
+        else:
+            pass
 # --------- SPENDINGS OUTPUTS ----------- #
 def displayspendings():
     """
@@ -842,9 +1007,46 @@ def displayspendings():
         DISPLAY.append(SPENDINGS[len(SPENDINGS) - i])
     print("Recent Transactions")
     print(tabulate(DISPLAY,HEADER, tablefmt="fancy_outline", floatfmt=".2f"))
-
-
-
+def displayquerySpend(QUERYINFO):
+    """
+    Displays the info from the year the user has inputted
+    :param QUERYINFO: 2d array
+    :return: none
+    """
+    HEADER = ["id", "Entry", "Year", "Category", "Transaction", "Amount", "GST"]
+    if QUERYINFO == []:
+        print("There is no existing information in this year")
+    else:
+        print(f"""Available Info
+{tabulate(QUERYINFO, HEADER, tablefmt="fancy_outline")}""")
+        if input("To proceed, press any button") == "r":
+            pass
+        else:
+            pass
+def graphSpend(X, Y):
+    """
+    Graphs the information of the spendings table
+    :param: X: array
+    :param Y: array
+    :return: none
+    """
+    plt.figure(figsize=(9, 6))
+    plt.ylabel("Total Spendings")
+    plt.xlabel("Year")
+    plt.suptitle('Total Spendings Yearly')
+    plt.plot(X, Y,"r")
+    plt.show()
+# ------------ REVENUE V.S SPENDINGS OUTPUTS -------- #
+def displayProfit(ANSWER):
+    """
+    Displays the output of the total revenue - total spendings in a given year
+    :param: ANSWER: float
+    :return: none
+    """
+    if ANSWER == None:
+        print("There is no information in revenue or spendings for the current year.")
+    else:
+        print(f"The profit is {ANSWER}")
 # -------------------------- MAIN PROGRAM CODE --------------------------- #
 if __name__ == "__main__":
 # Setup Tables/Create a new password
@@ -886,16 +1088,18 @@ if __name__ == "__main__":
                 print("Data successfully added!")
             if OPTION == 2:
                 # INPUT
-                ID = askRevId()
-                # INPUT/PROCESSING/OUTPUT
-                updateRev(ID)
+                REVID = askRevId()
+                # INPUT/PROCESSING
+                updateRev(REVID)
+                # OUTPUTS
+                print("Information successfully updated!")
             if OPTION == 3:
                 # INPUT
-                ID = askRevId()
+                REVID = askRevId()
                 # PROCESSING
-                deleteRev(ID)
+                deleteRev(REVID)
                 # OUTPUTS
-                print(f"{ID} successfully deleted!")
+                print(f"{REVID} successfully deleted!")
             if OPTION == 4:
                 # INPUT
                 YR = askRevYr()
@@ -925,8 +1129,10 @@ if __name__ == "__main__":
             if OPTION == 2:
                 # INPUT
                 SPENDID = askSpendID()
-                # INPUT/PROCESSING/OUTPUT
+                # INPUT/PROCESSING
                 updateSpend(SPENDID)
+                # OUTPUT
+                print("Information successfully updated!")
             if OPTION == 3:
                 # INPUT
                 SPENDID = askSpendID()
@@ -949,13 +1155,18 @@ if __name__ == "__main__":
             if OPTION == 6:
                 pass
         if CALCULATE == 3:
+            # INPUT
             DECISION = askChoice()
             if DECISION == 1:
+                # INPUT
                 YR = askYr()
+                # PROCESSING
                 ANSWER = findProfits(YR)
+                # OUTPUT
                 displayProfit(ANSWER)
             if DECISION == 2:
-                displayAllgraph()
+                GRAPHSPEND, GRAPHREV = getInfoAll()
+                displayAllgraph(GRAPHSPEND, GRAPHREV)
             if DECISION == 3:
                 pass
         if CALCULATE == 4:
