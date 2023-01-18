@@ -825,7 +825,6 @@ def findProfits(YR):
                 WHERE
                     Year = ?
             ;""", [YR]).fetchall()
-        print(REVENUENUMBER)
         NEWINFOREV = []
         for i in range(len(INFOREV)):
             NEWINFOREV.append(INFOREV[i][0])
