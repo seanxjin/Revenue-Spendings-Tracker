@@ -20,30 +20,30 @@ else:
     CONNECTION = sqlite3.connect(DATABASE_FILE)
     CURSOR = CONNECTION.cursor()
 START = 0
-RUN = True
 ### INPUTS
 def choiceLoginOrUpdate():
     """
-    Asks user for choice of login into the program, or update a password.
+    Asks user for choice of login into the program, update a password, or exit.
     :return: int
     """
     print("""
-    Please select a integer
+    Please select one of the options
     1. Login
     2. Update Password
+    3. Exit
     """)
     CHOICE = input("> ")
     try:
         CHOICE = int(CHOICE)
     except ValueError:
         return choiceLoginOrUpdate()
-    if CHOICE == 1 or CHOICE == 2:
+    if CHOICE == 1 or CHOICE == 2 or CHOICE == 3:
         return CHOICE
     else:
         return choiceLoginOrUpdate()
 def askPassword():
     """
-    Asks for the password. The password is preset.
+    Asks for the password.
     :return: str
     """
     print("Current Password:")
@@ -56,6 +56,7 @@ def storePass():
     """
     global CURSOR, CONNECTION
     print("""
+    Please set a password for the Finance Calculator
     Set Password: 
     """)
     PASSWORD = input("> ")
@@ -104,11 +105,11 @@ def askCalculation():
     :return: int
     """
     print("""
-    Please Select an Calculation. Input an Integer
-    
+    Welcome to the Financial Calculator, please select an option from below
+        
     1. Revenue 
-    2. Spendings
-    3. Revenue vs Spendings
+    2. Spending
+    3. Revenue vs Spending
     4. Exit
     """)
     CHOICE = input("> ")
@@ -185,12 +186,12 @@ def askRevData():
     Asks the user for the revenue data that is about to be inputted
     :return: Array
     """
-    ENTRY = input("Entry (A brief word regarding the context of the revenue): ")
-    YEAR = input("Year (Integer): ")
+    ENTRY = input("Entry/Context: ")
+    YEAR = input("Year: ")
     YEAR = checkInt(YEAR)
-    CATEGORY = input("Category (Donation, Payment, Fee, or other): ")
-    TRANSACTION = input("Transaction (Type of transaction): ")
-    AMOUNT = input("Amount (Total gained): ")
+    CATEGORY = input("Category Payment/Other: ")
+    TRANSACTION = input("Transaction: ")
+    AMOUNT = input("Amount: ")
     AMOUNT = checkFloat(AMOUNT)
     REV = [ENTRY, YEAR, CATEGORY, TRANSACTION, AMOUNT]
     return REV
@@ -225,7 +226,7 @@ def askSpendID():
         ORDER BY
             Year DESC
     ;""").fetchall()
-    HEADER = ["id", "Entry", "Year"]
+    HEADER = ["id", "Entry", "Year","Amount"]
     print("Please select a id")
     print(tabulate(INFO,HEADER,tablefmt="fancy_outline"))
     CHOICE = input("> ")
@@ -276,7 +277,7 @@ def askChoice():
     Asks the user what they want to calculate for the revenue vs spendings
     :return: int
     """
-    print("""Please choose a integer
+    print("""Please select a calculation
     1. Find Profits in a specific year
     2. Graph revenue v.s spendings
     3. Back
@@ -1045,7 +1046,7 @@ def displayProfit(ANSWER):
     if ANSWER == None:
         print("There is no information in revenue or spendings for the current year.")
     else:
-        print(f"The profit is {ANSWER}")
+        print(f"The profit is ${ANSWER}")
 # -------------------------- MAIN PROGRAM CODE --------------------------- #
 if __name__ == "__main__":
 # Setup Tables/Create a new password
@@ -1070,6 +1071,8 @@ if __name__ == "__main__":
             ASK = askPassword()
             # PROCESSING
             PASSWORD = setNewPassword(ASK)
+        if CHOICE == 3:
+            exit()
     while RUN:
         # INPUT
         CALCULATE = askCalculation()
