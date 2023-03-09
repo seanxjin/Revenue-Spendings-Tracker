@@ -191,8 +191,10 @@ def askRevData():
     YEAR = checkInt(YEAR)
     CATEGORY = input("Category Payment/Other: ")
     TRANSACTION = input("Transaction: ")
+    checkTransaction(TRANSACTION)
     AMOUNT = input("Amount: ")
     AMOUNT = checkFloat(AMOUNT)
+
     REV = [ENTRY, YEAR, CATEGORY, TRANSACTION, AMOUNT]
     return REV
 def askRevYr():
@@ -252,6 +254,7 @@ def askSpendData():
     YEAR = input("Year (Integer): ")
     YEAR = checkInt(YEAR)
     TRANSACTION = input("Transaction (Type of transaction): ")
+    checkTransaction(TRANSACTION)
     CATEGORY = input("Category (Donation, Payment, Fee, or other): ")
     AMOUNT = input("Amount (Amount lost before taxes): ")
     AMOUNT = checkFloat(AMOUNT)
@@ -332,6 +335,18 @@ def checkFloat(NUM):
         NEW_NUM = input("> ")
         return checkFloat(NEW_NUM)
     return NUM
+def checkTransaction(NUM):
+    """
+    A recursive function that checks if the transaction input is null, and if it is, the function will ask for a proper input.
+    :param NUM: str
+    :return: str
+    """
+    if NUM == "":
+        print("Type of transaction must be identified, please fill out this area")
+        NEW_TRANSACTION = input("> ")
+        return checkTransaction((NEW_TRANSACTION))
+    else:
+        return NUM
 def getValues(FILENAME):
     """
     Extracts contents of file and put it into 2d array
@@ -438,24 +453,6 @@ def confirmPassword(ASK):
     else:
         print("Password is incorrect")
         return 0
-def setupRevAndSpend():
-    """
-    Sets up the table of revenue vs spendings
-    :return: none
-    """
-    global CURSOR, CONNECTION
-    CURSOR.execute("""
-        CREATE TABLE
-            profit (
-                id INTEGER PRIMARY KEY,
-                Year INTEGER NOT NULL,
-                Tot_Spend REAL NOT NULL,
-                Tot_Revenue REAL NOT NULL,
-                Tot_Profit REAL NOT NULL,
-                Amount_Left REAL NOT NULL
-                )
-    ;""")
-    CONNECTION.commit()
 # -------- REVENUE PROCESSING ------------ #
 
 def queryRev(YR):
@@ -1055,7 +1052,6 @@ if __name__ == "__main__":
         setupRevenue(REVENUE)
         SPENDINGS = getValues("Spendings - Sheet1.csv")
         setupSpendings(SPENDINGS)
-        setupRevAndSpend()
         storePass()
 # Password Checking
     while START == 0:
