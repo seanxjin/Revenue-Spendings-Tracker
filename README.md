@@ -12,7 +12,7 @@ A console-based application designed to track and manage personal finances, incl
 - Tabular Data Representation: Provides organized, readable tables for users to review their financial records.
 
 ### Technologies Used
-Python: Core programming language for implementation.
-Matplotlib: For generating visual charts and graphs.
-SQLite: For database management and persistent data storage.
-Tabulate: For structured and well-formatted output in the console.
+- Python: Core programming language for implementation.
+- Matplotlib: For generating visual charts and graphs.
+- SQLite: For database management and persistent data storage.
+- Tabulate: For structured and well-formatted output in the console.
